@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { DespachoForm } from "@/components/DespachoForm";
 import { actualizarDespachoAction } from "@/app/despachos/actions";
-import { obtenerDespacho } from "@/db/queries";
+import { obtenerDespacho } from "@/db/queries/despachos";
+import { listarTransportistasActivos } from "@/db/queries/transportistas";
 
 export default async function EditarDespachoPage({
   params,
@@ -15,6 +16,16 @@ export default async function EditarDespachoPage({
     notFound();
   }
 
+  const transportistasActivos = await listarTransportistasActivos();
+
+  // Si el transportista asignado quedó inactivo, lo incluimos igual en la
+  // lista para no perder la selección actual del despacho al editar.
+  const transportistas = transportistasActivos.some(
+    (t) => t.id === despacho.transportistaId
+  )
+    ? transportistasActivos
+    : [despacho.transportista, ...transportistasActivos];
+
   const action = actualizarDespachoAction.bind(null, id);
 
   return (
@@ -26,7 +37,12 @@ export default async function EditarDespachoPage({
           {despacho.numeroGuia ? `"${despacho.numeroGuia}"` : ""}.
         </p>
       </div>
-      <DespachoForm action={action} despacho={despacho} submitLabel="Guardar cambios" />
+      <DespachoForm
+        action={action}
+        despacho={despacho}
+        transportistas={transportistas}
+        submitLabel="Guardar cambios"
+      />
     </div>
   );
 }

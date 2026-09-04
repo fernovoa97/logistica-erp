@@ -14,10 +14,10 @@ const MODULOS = [
     disponible: false,
   },
   {
-    href: "#",
+    href: "/transportistas",
     nombre: "Transportistas",
-    descripcion: "Próximamente: catálogo de transportistas y sus datos de contacto.",
-    disponible: false,
+    descripcion: "Catálogo de transportistas: contacto, vehículo y estado.",
+    disponible: true,
   },
   {
     href: "#",

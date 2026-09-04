@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { ESTADOS, ESTADO_LABEL } from "@/lib/estados";
-import type { Despacho } from "@/db/schema";
+import type { DespachoConTransportista, Transportista } from "@/db/schema";
 import type { EstadoFormulario } from "@/app/despachos/actions";
 
 function aFechaInput(fecha: Date | null | undefined): string {
@@ -17,10 +17,12 @@ function aFechaInput(fecha: Date | null | undefined): string {
 export function DespachoForm({
   action,
   despacho,
+  transportistas,
   submitLabel,
 }: {
   action: (prevState: EstadoFormulario, formData: FormData) => Promise<EstadoFormulario>;
-  despacho?: Despacho;
+  despacho?: DespachoConTransportista;
+  transportistas: Transportista[];
   submitLabel: string;
 }) {
   const [state, formAction, isPending] = useActionState<EstadoFormulario, FormData>(
@@ -38,18 +40,35 @@ export function DespachoForm({
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div className="flex flex-col gap-1">
-          <label htmlFor="transportista" className="text-sm font-medium text-zinc-700">
+          <label htmlFor="transportistaId" className="text-sm font-medium text-zinc-700">
             Transportista *
           </label>
-          <input
-            id="transportista"
-            name="transportista"
-            type="text"
+          <select
+            id="transportistaId"
+            name="transportistaId"
             required
-            defaultValue={despacho?.transportista}
-            placeholder="Ej. Transportes Rápidos SAC"
+            defaultValue={despacho?.transportistaId ?? ""}
             className="rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none"
-          />
+          >
+            <option value="" disabled>
+              Selecciona un transportista...
+            </option>
+            {transportistas.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.nombre}
+                {t.estado === "inactivo" ? " (inactivo)" : ""}
+              </option>
+            ))}
+          </select>
+          {transportistas.length === 0 && (
+            <p className="text-xs text-zinc-500">
+              No hay transportistas registrados todavía.{" "}
+              <Link href="/transportistas/nuevo" className="underline">
+                Crea uno primero
+              </Link>
+              .
+            </p>
+          )}
         </div>
 
         <div className="flex flex-col gap-1">

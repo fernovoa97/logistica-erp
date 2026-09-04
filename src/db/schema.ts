@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import { pgTable, uuid, varchar, text, timestamp, pgEnum } from "drizzle-orm/pg-core";
 
 /**
@@ -12,15 +13,42 @@ export const estadoDespachoEnum = pgEnum("estado_despacho", [
   "cancelado",
 ]);
 
+export const estadoTransportistaEnum = pgEnum("estado_transportista", [
+  "activo",
+  "inactivo",
+]);
+
+export const transportistas = pgTable("transportistas", {
+  id: uuid("id").primaryKey().defaultRandom(),
+
+  nombre: varchar("nombre", { length: 200 }).notNull(),
+  documento: varchar("documento", { length: 20 }), // RUC / DNI
+
+  contactoNombre: varchar("contacto_nombre", { length: 200 }),
+  telefono: varchar("telefono", { length: 50 }),
+  email: varchar("email", { length: 200 }),
+
+  vehiculoPlaca: varchar("vehiculo_placa", { length: 20 }),
+  vehiculoTipo: varchar("vehiculo_tipo", { length: 100 }),
+
+  estado: estadoTransportistaEnum("estado").notNull().default("activo"),
+
+  observaciones: text("observaciones"),
+
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const despachos = pgTable("despachos", {
   id: uuid("id").primaryKey().defaultRandom(),
 
   // Identificación del despacho
   numeroGuia: varchar("numero_guia", { length: 100 }),
 
-  // Datos de transporte (por ahora texto libre; cuando construyamos el
-  // módulo de Transportistas, este campo pasará a ser una relación).
-  transportista: varchar("transportista", { length: 200 }).notNull(),
+  // Transportista asignado (relación con el catálogo de Transportistas).
+  transportistaId: uuid("transportista_id")
+    .notNull()
+    .references(() => transportistas.id),
 
   // Origen / destino
   origen: varchar("origen", { length: 200 }),
@@ -41,5 +69,21 @@ export const despachos = pgTable("despachos", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+export const transportistasRelations = relations(transportistas, ({ many }) => ({
+  despachos: many(despachos),
+}));
+
+export const despachosRelations = relations(despachos, ({ one }) => ({
+  transportista: one(transportistas, {
+    fields: [despachos.transportistaId],
+    references: [transportistas.id],
+  }),
+}));
+
+export type Transportista = typeof transportistas.$inferSelect;
+export type NuevoTransportista = typeof transportistas.$inferInsert;
+
 export type Despacho = typeof despachos.$inferSelect;
 export type NuevoDespacho = typeof despachos.$inferInsert;
+
+export type DespachoConTransportista = Despacho & { transportista: Transportista };

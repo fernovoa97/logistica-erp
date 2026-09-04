@@ -6,7 +6,7 @@ import {
   crearDespacho,
   actualizarDespacho,
   eliminarDespacho,
-} from "@/db/queries";
+} from "@/db/queries/despachos";
 import { ESTADOS, type EstadoDespacho } from "@/lib/estados";
 import type { NuevoDespacho } from "@/db/schema";
 
@@ -16,12 +16,12 @@ export type EstadoFormulario = {
 } | null;
 
 function parseFormulario(formData: FormData): NuevoDespacho | { error: string } {
-  const transportista = String(formData.get("transportista") ?? "").trim();
+  const transportistaId = String(formData.get("transportistaId") ?? "").trim();
   const destino = String(formData.get("destino") ?? "").trim();
   const fechaDespachoRaw = String(formData.get("fechaDespacho") ?? "").trim();
   const estado = String(formData.get("estado") ?? "pendiente").trim();
 
-  if (!transportista) return { error: "El transportista es obligatorio." };
+  if (!transportistaId) return { error: "Debes seleccionar un transportista." };
   if (!destino) return { error: "El destino es obligatorio." };
   if (!fechaDespachoRaw) return { error: "La fecha de despacho es obligatoria." };
 
@@ -43,7 +43,7 @@ function parseFormulario(formData: FormData): NuevoDespacho | { error: string } 
 
   return {
     numeroGuia: String(formData.get("numeroGuia") ?? "").trim() || null,
-    transportista,
+    transportistaId,
     origen: String(formData.get("origen") ?? "").trim() || null,
     destino,
     ordenCompraRef: String(formData.get("ordenCompraRef") ?? "").trim() || null,
@@ -63,7 +63,12 @@ export async function crearDespachoAction(
     return { error: resultado.error };
   }
 
-  await crearDespacho(resultado);
+  try {
+    await crearDespacho(resultado);
+  } catch {
+    return { error: "El transportista seleccionado ya no existe. Actualiza la página e inténtalo de nuevo." };
+  }
+
   revalidatePath("/despachos");
   redirect("/despachos");
 }
@@ -78,7 +83,12 @@ export async function actualizarDespachoAction(
     return { error: resultado.error };
   }
 
-  await actualizarDespacho(id, resultado);
+  try {
+    await actualizarDespacho(id, resultado);
+  } catch {
+    return { error: "El transportista seleccionado ya no existe. Actualiza la página e inténtalo de nuevo." };
+  }
+
   revalidatePath("/despachos");
   redirect("/despachos");
 }

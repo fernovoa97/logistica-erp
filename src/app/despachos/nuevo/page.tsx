@@ -1,7 +1,15 @@
 import { DespachoForm } from "@/components/DespachoForm";
 import { crearDespachoAction } from "@/app/despachos/actions";
+import { listarTransportistasActivos } from "@/db/queries/transportistas";
 
-export default function NuevoDespachoPage() {
+// La lista de transportistas se lee en cada visita (no se prerenderiza como
+// estática) para que un transportista nuevo aparezca de inmediato en el
+// selector, sin esperar a un nuevo build.
+export const dynamic = "force-dynamic";
+
+export default async function NuevoDespachoPage() {
+  const transportistas = await listarTransportistasActivos();
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -10,7 +18,11 @@ export default function NuevoDespachoPage() {
           Completa los datos del despacho. Los campos marcados con * son obligatorios.
         </p>
       </div>
-      <DespachoForm action={crearDespachoAction} submitLabel="Crear despacho" />
+      <DespachoForm
+        action={crearDespachoAction}
+        transportistas={transportistas}
+        submitLabel="Crear despacho"
+      />
     </div>
   );
 }

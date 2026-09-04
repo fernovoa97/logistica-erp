@@ -12,9 +12,14 @@ Pensado para desplegarse en **Railway** de forma simple.
 | Módulo             | Estado         |
 | ------------------- | -------------- |
 | Despachos            | ✅ Disponible  |
+| Transportistas        | ✅ Disponible  |
 | Órdenes de compra    | 🔜 Próximamente |
-| Transportistas        | 🔜 Próximamente |
 | Guías                 | 🔜 Próximamente |
+
+El campo "Transportista" de un despacho ahora es una relación real con el
+catálogo de Transportistas (selector, no texto libre). Un transportista no se
+puede eliminar si tiene despachos asociados: primero hay que reasignarlos o
+marcar al transportista como "Inactivo".
 
 Los módulos se construyen de forma progresiva. Cada módulo nuevo agrega su
 propia carpeta en `src/app/<modulo>` y su tabla en `src/db/schema.ts`.
@@ -68,6 +73,15 @@ Para explorar los datos con una interfaz visual:
 ```bash
 npm run db:studio
 ```
+
+### Actualizar un despliegue que ya tiene datos
+
+Si ya usaste el sistema y tienes despachos guardados antes de agregar el
+módulo de Transportistas: no hay que hacer nada especial. La migración
+`drizzle/0002_backfill_transportistas.sql` crea automáticamente un
+transportista por cada nombre que ya existía escrito como texto libre y
+reasigna cada despacho al transportista correcto, sin perder información.
+Esto pasa solo, la próxima vez que el servicio arranque con el código nuevo.
 
 ## Despliegue en Railway
 
