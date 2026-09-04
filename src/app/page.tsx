@@ -8,15 +8,21 @@ const MODULOS = [
     disponible: true,
   },
   {
-    href: "#",
+    href: "/ordenes-compra",
     nombre: "Órdenes de compra",
-    descripcion: "Próximamente: registro y seguimiento de órdenes de compra.",
-    disponible: false,
+    descripcion: "Registro y seguimiento de órdenes de compra por proveedor.",
+    disponible: true,
   },
   {
     href: "/transportistas",
     nombre: "Transportistas",
     descripcion: "Catálogo de transportistas: contacto, vehículo y estado.",
+    disponible: true,
+  },
+  {
+    href: "/proveedores",
+    nombre: "Proveedores",
+    descripcion: "Catálogo de proveedores: contacto, RUC y estado.",
     disponible: true,
   },
   {

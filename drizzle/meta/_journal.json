@@ -29,6 +29,27 @@
       "when": 1788541741891,
       "tag": "0003_finalize_transportista_relacion",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788542942235,
+      "tag": "0004_add_proveedores_y_ordenes_compra",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788542948467,
+      "tag": "0005_backfill_ordenes_compra",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788542964000,
+      "tag": "0006_drop_orden_compra_ref",
+      "breakpoints": true
     }
   ]
 }

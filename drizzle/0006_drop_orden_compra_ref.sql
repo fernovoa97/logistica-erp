@@ -1,0 +1,1 @@
+ALTER TABLE "despachos" DROP COLUMN "orden_compra_ref";

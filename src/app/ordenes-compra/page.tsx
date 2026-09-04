@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { listarDespachos } from "@/db/queries/despachos";
-import { ESTADOS, ESTADO_LABEL, type EstadoDespacho } from "@/lib/estados";
-import { EstadoBadge } from "@/components/EstadoBadge";
-import { DeleteDespachoButton } from "@/components/DeleteDespachoButton";
+import { listarOrdenesCompra } from "@/db/queries/ordenes-compra";
+import { ESTADOS_OC, ESTADO_OC_LABEL, type EstadoOC } from "@/lib/ordenes-compra";
+import { EstadoOCBadge } from "@/components/EstadoOCBadge";
+import { DeleteOrdenCompraButton } from "@/components/DeleteOrdenCompraButton";
 
 function formatearFecha(fecha: Date | null): string {
   if (!fecha) return "—";
@@ -13,35 +13,42 @@ function formatearFecha(fecha: Date | null): string {
   });
 }
 
-export default async function DespachosPage({
+function formatearMonto(monto: string | null): string {
+  if (!monto) return "—";
+  const numero = Number(monto);
+  if (Number.isNaN(numero)) return "—";
+  return `S/. ${numero.toLocaleString("es-PE", { minimumFractionDigits: 2 })}`;
+}
+
+export default async function OrdenesCompraPage({
   searchParams,
 }: {
   searchParams: Promise<{ estado?: string; q?: string }>;
 }) {
   const params = await searchParams;
   const estadoFiltro =
-    params.estado && ESTADOS.includes(params.estado as EstadoDespacho)
-      ? (params.estado as EstadoDespacho)
+    params.estado && ESTADOS_OC.includes(params.estado as EstadoOC)
+      ? (params.estado as EstadoOC)
       : "todos";
   const q = params.q ?? "";
 
-  const despachos = await listarDespachos({ estado: estadoFiltro, q });
+  const ordenes = await listarOrdenesCompra({ estado: estadoFiltro, q });
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Despachos</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Órdenes de compra</h1>
           <p className="mt-1 text-sm text-zinc-600">
-            {despachos.length} despacho{despachos.length === 1 ? "" : "s"} registrado
-            {despachos.length === 1 ? "" : "s"}
+            {ordenes.length} orden{ordenes.length === 1 ? "" : "es"} registrada
+            {ordenes.length === 1 ? "" : "s"}
           </p>
         </div>
         <Link
-          href="/despachos/nuevo"
+          href="/ordenes-compra/nuevo"
           className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
         >
-          + Nuevo despacho
+          + Nueva orden de compra
         </Link>
       </div>
 
@@ -55,7 +62,7 @@ export default async function DespachosPage({
             name="q"
             type="text"
             defaultValue={q}
-            placeholder="Guía, transportista, destino, OC..."
+            placeholder="Número de OC, proveedor..."
             className="w-64 rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none"
           />
         </div>
@@ -70,9 +77,9 @@ export default async function DespachosPage({
             className="rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none"
           >
             <option value="todos">Todos</option>
-            {ESTADOS.map((estado) => (
+            {ESTADOS_OC.map((estado) => (
               <option key={estado} value={estado}>
-                {ESTADO_LABEL[estado]}
+                {ESTADO_OC_LABEL[estado]}
               </option>
             ))}
           </select>
@@ -85,7 +92,7 @@ export default async function DespachosPage({
         </button>
         {(q || estadoFiltro !== "todos") && (
           <Link
-            href="/despachos"
+            href="/ordenes-compra"
             className="text-sm font-medium text-zinc-500 hover:text-zinc-800"
           >
             Limpiar filtros
@@ -97,73 +104,55 @@ export default async function DespachosPage({
         <table className="min-w-full divide-y divide-zinc-200 text-sm">
           <thead className="bg-zinc-50">
             <tr>
-              <th className="px-4 py-3 text-left font-medium text-zinc-600">Guía</th>
-              <th className="px-4 py-3 text-left font-medium text-zinc-600">Transportista</th>
-              <th className="px-4 py-3 text-left font-medium text-zinc-600">Origen → Destino</th>
-              <th className="px-4 py-3 text-left font-medium text-zinc-600">OC</th>
+              <th className="px-4 py-3 text-left font-medium text-zinc-600">N° OC</th>
+              <th className="px-4 py-3 text-left font-medium text-zinc-600">Proveedor</th>
               <th className="px-4 py-3 text-left font-medium text-zinc-600">Estado</th>
-              <th className="px-4 py-3 text-left font-medium text-zinc-600">F. despacho</th>
-              <th className="px-4 py-3 text-left font-medium text-zinc-600">F. est. entrega</th>
+              <th className="px-4 py-3 text-left font-medium text-zinc-600">Monto</th>
+              <th className="px-4 py-3 text-left font-medium text-zinc-600">F. emisión</th>
+              <th className="px-4 py-3 text-left font-medium text-zinc-600">F. esperada</th>
               <th className="px-4 py-3 text-right font-medium text-zinc-600">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100">
-            {despachos.length === 0 && (
+            {ordenes.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-zinc-500">
-                  No hay despachos que coincidan con el filtro.
+                <td colSpan={7} className="px-4 py-10 text-center text-zinc-500">
+                  No hay órdenes de compra que coincidan con el filtro.
                 </td>
               </tr>
             )}
-            {despachos.map((despacho) => (
-              <tr key={despacho.id} className="hover:bg-zinc-50">
+            {ordenes.map((oc) => (
+              <tr key={oc.id} className="hover:bg-zinc-50">
                 <td className="px-4 py-3 font-medium text-zinc-800">
-                  {despacho.numeroGuia || "—"}
+                  {oc.numeroOc || "—"}
                 </td>
                 <td className="px-4 py-3">
                   <Link
-                    href={`/transportistas/${despacho.transportista.id}/editar`}
+                    href={`/proveedores/${oc.proveedor.id}/editar`}
                     className="hover:underline"
                   >
-                    {despacho.transportista.nombre}
+                    {oc.proveedor.nombre}
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-zinc-600">
-                  {despacho.origen ? `${despacho.origen} → ` : ""}
-                  {despacho.destino}
-                </td>
-                <td className="px-4 py-3 text-zinc-600">
-                  {despacho.ordenCompra ? (
-                    <Link
-                      href={`/ordenes-compra/${despacho.ordenCompra.id}/editar`}
-                      className="hover:underline"
-                    >
-                      {despacho.ordenCompra.numeroOc || "(sin número)"}
-                    </Link>
-                  ) : (
-                    "—"
-                  )}
-                </td>
                 <td className="px-4 py-3">
-                  <EstadoBadge estado={despacho.estado} />
+                  <EstadoOCBadge estado={oc.estado} />
                 </td>
+                <td className="px-4 py-3 text-zinc-600">{formatearMonto(oc.montoTotal)}</td>
+                <td className="px-4 py-3 text-zinc-600">{formatearFecha(oc.fechaEmision)}</td>
                 <td className="px-4 py-3 text-zinc-600">
-                  {formatearFecha(despacho.fechaDespacho)}
-                </td>
-                <td className="px-4 py-3 text-zinc-600">
-                  {formatearFecha(despacho.fechaEntregaEstimada)}
+                  {formatearFecha(oc.fechaEntregaEsperada)}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-4">
                     <Link
-                      href={`/despachos/${despacho.id}/editar`}
+                      href={`/ordenes-compra/${oc.id}/editar`}
                       className="text-sm font-medium text-zinc-700 hover:text-zinc-900"
                     >
                       Editar
                     </Link>
-                    <DeleteDespachoButton
-                      id={despacho.id}
-                      descripcion={despacho.numeroGuia || despacho.destino}
+                    <DeleteOrdenCompraButton
+                      id={oc.id}
+                      descripcion={oc.numeroOc || oc.proveedor.nombre}
                     />
                   </div>
                 </td>

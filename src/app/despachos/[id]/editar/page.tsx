@@ -3,6 +3,7 @@ import { DespachoForm } from "@/components/DespachoForm";
 import { actualizarDespachoAction } from "@/app/despachos/actions";
 import { obtenerDespacho } from "@/db/queries/despachos";
 import { listarTransportistasActivos } from "@/db/queries/transportistas";
+import { listarOrdenesCompraSelector } from "@/db/queries/ordenes-compra";
 
 export default async function EditarDespachoPage({
   params,
@@ -16,7 +17,10 @@ export default async function EditarDespachoPage({
     notFound();
   }
 
-  const transportistasActivos = await listarTransportistasActivos();
+  const [transportistasActivos, ordenesCompra] = await Promise.all([
+    listarTransportistasActivos(),
+    listarOrdenesCompraSelector(),
+  ]);
 
   // Si el transportista asignado quedó inactivo, lo incluimos igual en la
   // lista para no perder la selección actual del despacho al editar.
@@ -41,6 +45,7 @@ export default async function EditarDespachoPage({
         action={action}
         despacho={despacho}
         transportistas={transportistas}
+        ordenesCompra={ordenesCompra}
         submitLabel="Guardar cambios"
       />
     </div>

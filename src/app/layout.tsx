@@ -10,7 +10,8 @@ export const metadata: Metadata = {
 const NAV_ITEMS = [
   { href: "/despachos", label: "Despachos", disponible: true },
   { href: "/transportistas", label: "Transportistas", disponible: true },
-  { href: "#", label: "Órdenes de compra", disponible: false },
+  { href: "/ordenes-compra", label: "Órdenes de compra", disponible: true },
+  { href: "/proveedores", label: "Proveedores", disponible: true },
   { href: "#", label: "Guías", disponible: false },
 ];
 

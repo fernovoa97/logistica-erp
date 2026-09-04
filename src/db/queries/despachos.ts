@@ -2,8 +2,9 @@ import { db } from "@/db";
 import {
   despachos,
   transportistas,
+  ordenesCompra,
   type NuevoDespacho,
-  type DespachoConTransportista,
+  type DespachoConRelaciones,
 } from "@/db/schema";
 import { and, desc, eq, ilike, inArray, or } from "drizzle-orm";
 import type { EstadoDespacho } from "@/lib/estados";
@@ -15,7 +16,7 @@ export type FiltrosDespachos = {
 
 export async function listarDespachos(
   filtros: FiltrosDespachos = {}
-): Promise<DespachoConTransportista[]> {
+): Promise<DespachoConRelaciones[]> {
   const condiciones = [];
 
   if (filtros.estado && filtros.estado !== "todos") {
@@ -25,40 +26,46 @@ export async function listarDespachos(
   if (filtros.q && filtros.q.trim() !== "") {
     const termino = `%${filtros.q.trim()}%`;
 
-    // El nombre del transportista vive en otra tabla; buscamos primero los
-    // IDs de transportistas que calzan con el término de búsqueda.
+    // El nombre del transportista y el número de OC viven en otras tablas;
+    // buscamos primero los IDs que calzan con el término de búsqueda.
     const transportistasCoincidentes = await db
       .select({ id: transportistas.id })
       .from(transportistas)
       .where(ilike(transportistas.nombre, termino));
     const idsTransportistas = transportistasCoincidentes.map((t) => t.id);
 
+    const ocCoincidentes = await db
+      .select({ id: ordenesCompra.id })
+      .from(ordenesCompra)
+      .where(ilike(ordenesCompra.numeroOc, termino));
+    const idsOc = ocCoincidentes.map((o) => o.id);
+
     condiciones.push(
       or(
         ilike(despachos.numeroGuia, termino),
         ilike(despachos.destino, termino),
         ilike(despachos.origen, termino),
-        ilike(despachos.ordenCompraRef, termino),
         idsTransportistas.length
           ? inArray(despachos.transportistaId, idsTransportistas)
-          : undefined
+          : undefined,
+        idsOc.length ? inArray(despachos.ordenCompraId, idsOc) : undefined
       )
     );
   }
 
   return db.query.despachos.findMany({
     where: condiciones.length ? and(...condiciones) : undefined,
-    with: { transportista: true },
+    with: { transportista: true, ordenCompra: { with: { proveedor: true } } },
     orderBy: [desc(despachos.fechaDespacho), desc(despachos.createdAt)],
   });
 }
 
 export async function obtenerDespacho(
   id: string
-): Promise<DespachoConTransportista | undefined> {
+): Promise<DespachoConRelaciones | undefined> {
   return db.query.despachos.findFirst({
     where: eq(despachos.id, id),
-    with: { transportista: true },
+    with: { transportista: true, ordenCompra: { with: { proveedor: true } } },
   });
 }
 

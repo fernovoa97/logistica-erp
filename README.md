@@ -13,13 +13,16 @@ Pensado para desplegarse en **Railway** de forma simple.
 | ------------------- | -------------- |
 | Despachos            | ✅ Disponible  |
 | Transportistas        | ✅ Disponible  |
-| Órdenes de compra    | 🔜 Próximamente |
+| Proveedores           | ✅ Disponible  |
+| Órdenes de compra    | ✅ Disponible  |
 | Guías                 | 🔜 Próximamente |
 
-El campo "Transportista" de un despacho ahora es una relación real con el
-catálogo de Transportistas (selector, no texto libre). Un transportista no se
-puede eliminar si tiene despachos asociados: primero hay que reasignarlos o
-marcar al transportista como "Inactivo".
+Los campos "Transportista" y "Orden de compra" de un despacho son relaciones
+reales (selectores), no texto libre. Un transportista no se puede eliminar si
+tiene despachos asociados, y un proveedor no se puede eliminar si tiene
+órdenes de compra asociadas — en ambos casos, márcalos como "Inactivo" en vez
+de eliminarlos, o reasigna los registros relacionados primero. Lo mismo pasa
+con una orden de compra que tenga despachos asociados.
 
 Los módulos se construyen de forma progresiva. Cada módulo nuevo agrega su
 propia carpeta en `src/app/<modulo>` y su tabla en `src/db/schema.ts`.

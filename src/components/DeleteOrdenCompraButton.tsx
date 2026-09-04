@@ -1,0 +1,46 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { eliminarOrdenCompraAction } from "@/app/ordenes-compra/actions";
+
+export function DeleteOrdenCompraButton({
+  id,
+  descripcion,
+}: {
+  id: string;
+  descripcion: string;
+}) {
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  return (
+    <div className="inline-flex flex-col items-end gap-1">
+      <button
+        type="button"
+        disabled={isPending}
+        onClick={() => {
+          const confirmado = window.confirm(
+            `¿Eliminar la orden de compra "${descripcion}"? Esta acción no se puede deshacer.`
+          );
+          if (!confirmado) return;
+
+          setError(null);
+          startTransition(async () => {
+            const resultado = await eliminarOrdenCompraAction(id);
+            if (resultado.error) {
+              setError(resultado.error);
+            } else {
+              router.refresh();
+            }
+          });
+        }}
+        className="text-sm font-medium text-red-600 hover:text-red-800 disabled:opacity-50"
+      >
+        {isPending ? "Eliminando..." : "Eliminar"}
+      </button>
+      {error && <p className="max-w-[220px] text-right text-xs text-red-600">{error}</p>}
+    </div>
+  );
+}

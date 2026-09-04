@@ -3,26 +3,21 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { ESTADOS, ESTADO_LABEL } from "@/lib/estados";
-import type { DespachoConTransportista, Transportista } from "@/db/schema";
+import { aFechaInput } from "@/lib/fechas";
+import type { DespachoConRelaciones, Transportista, OrdenCompraConProveedor } from "@/db/schema";
 import type { EstadoFormulario } from "@/app/despachos/actions";
-
-function aFechaInput(fecha: Date | null | undefined): string {
-  if (!fecha) return "";
-  const d = new Date(fecha);
-  const offset = d.getTimezoneOffset();
-  const local = new Date(d.getTime() - offset * 60 * 1000);
-  return local.toISOString().slice(0, 10);
-}
 
 export function DespachoForm({
   action,
   despacho,
   transportistas,
+  ordenesCompra,
   submitLabel,
 }: {
   action: (prevState: EstadoFormulario, formData: FormData) => Promise<EstadoFormulario>;
-  despacho?: DespachoConTransportista;
+  despacho?: DespachoConRelaciones;
   transportistas: Transportista[];
+  ordenesCompra: OrdenCompraConProveedor[];
   submitLabel: string;
 }) {
   const [state, formAction, isPending] = useActionState<EstadoFormulario, FormData>(
@@ -115,17 +110,22 @@ export function DespachoForm({
         </div>
 
         <div className="flex flex-col gap-1">
-          <label htmlFor="ordenCompraRef" className="text-sm font-medium text-zinc-700">
-            Orden de compra (referencia)
+          <label htmlFor="ordenCompraId" className="text-sm font-medium text-zinc-700">
+            Orden de compra
           </label>
-          <input
-            id="ordenCompraRef"
-            name="ordenCompraRef"
-            type="text"
-            defaultValue={despacho?.ordenCompraRef ?? ""}
-            placeholder="Ej. OC-2026-045"
+          <select
+            id="ordenCompraId"
+            name="ordenCompraId"
+            defaultValue={despacho?.ordenCompraId ?? ""}
             className="rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none"
-          />
+          >
+            <option value="">Sin orden de compra</option>
+            {ordenesCompra.map((oc) => (
+              <option key={oc.id} value={oc.id}>
+                {oc.numeroOc || "(sin número)"} — {oc.proveedor.nombre}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="flex flex-col gap-1">
