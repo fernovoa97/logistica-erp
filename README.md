@@ -1,28 +1,48 @@
 # Sistema de Logística
 
-Sistema web tipo ERP para controlar despachos, órdenes de compra, transportistas
-y guías. Es un sistema de información: guarda y organiza datos, no genera
-documentos (guías, PDFs, etc.).
+Sistema web tipo ERP para Drillco Tools Perú: controla pedidos de venta,
+despachos, órdenes de compra, transportistas, clientes, artículos y guías. Es
+un sistema de información: guarda y organiza datos, no genera documentos
+(guías, PDFs, etc.).
 
 Construido con **Next.js 16** (App Router) + **PostgreSQL** vía **Drizzle ORM**.
 Pensado para desplegarse en **Railway** de forma simple.
+
+## Modelo de negocio
+
+- Los **clientes** son las minas. Cada mina envía una OC, que se ingresa al
+  sistema como **Pedido de venta** (con sus líneas de artículos, moneda, tipo
+  de venta y condición de pago).
+- Cada pedido de venta se **despacha** (módulo Despachos), y ese despacho se
+  adjunta a una guía.
+- Por separado, Drillco compra sus propios artículos a **proveedores**
+  (locales o importaciones) mediante **órdenes de compra**. Este flujo de
+  compras es independiente del flujo de venta/despacho — no están conectados
+  entre sí.
 
 ## Módulos
 
 | Módulo             | Estado         |
 | ------------------- | -------------- |
+| Pedidos de venta      | ✅ Disponible  |
 | Despachos            | ✅ Disponible  |
+| Clientes               | ✅ Disponible  |
+| Artículos              | ✅ Disponible  |
 | Transportistas        | ✅ Disponible  |
 | Proveedores           | ✅ Disponible  |
 | Órdenes de compra    | ✅ Disponible  |
 | Guías                 | 🔜 Próximamente |
 
-Los campos "Transportista" y "Orden de compra" de un despacho son relaciones
-reales (selectores), no texto libre. Un transportista no se puede eliminar si
-tiene despachos asociados, y un proveedor no se puede eliminar si tiene
-órdenes de compra asociadas — en ambos casos, márcalos como "Inactivo" en vez
-de eliminarlos, o reasigna los registros relacionados primero. Lo mismo pasa
-con una orden de compra que tenga despachos asociados.
+Los campos "Transportista" y "Pedido de venta" de un despacho son relaciones
+reales (selectores), no texto libre. Reglas de borrado (guardas de
+integridad): un transportista no se puede eliminar si tiene despachos
+asociados; un cliente no se puede eliminar si tiene pedidos de venta
+asociados; un artículo no se puede eliminar si aparece en líneas de algún
+pedido de venta; un pedido de venta no se puede eliminar si tiene despachos
+asociados; un proveedor no se puede eliminar si tiene órdenes de compra
+asociadas. En todos los casos, la alternativa es marcar el registro como
+"Inactivo"/"Cancelado" en vez de eliminarlo, o reasignar los registros
+relacionados primero.
 
 Los módulos se construyen de forma progresiva. Cada módulo nuevo agrega su
 propia carpeta en `src/app/<modulo>` y su tabla en `src/db/schema.ts`.
@@ -79,12 +99,24 @@ npm run db:studio
 
 ### Actualizar un despliegue que ya tiene datos
 
-Si ya usaste el sistema y tienes despachos guardados antes de agregar el
-módulo de Transportistas: no hay que hacer nada especial. La migración
-`drizzle/0002_backfill_transportistas.sql` crea automáticamente un
-transportista por cada nombre que ya existía escrito como texto libre y
-reasigna cada despacho al transportista correcto, sin perder información.
-Esto pasa solo, la próxima vez que el servicio arranque con el código nuevo.
+Si ya usaste el sistema y tienes despachos guardados antes de agregar un
+módulo nuevo, no hay que hacer nada especial: las migraciones de backfill se
+encargan de no perder información, la próxima vez que el servicio arranque
+con el código nuevo.
+
+- `drizzle/0002_backfill_transportistas.sql` crea un transportista por cada
+  nombre que existía como texto libre y reasigna cada despacho.
+- `drizzle/0005_backfill_ordenes_compra.sql` crea una orden de compra (con un
+  proveedor placeholder) por cada número de OC que existía como texto libre.
+- `drizzle/0009_backfill_pedidos_venta.sql` — al introducir el módulo de
+  Pedidos de venta, el campo "Orden de compra" del despacho se reemplazó por
+  "Pedido de venta" (son conceptos distintos: uno es una compra a un
+  proveedor, el otro es la venta a un cliente). Si tenías despachos sin un
+  pedido de venta asignado, esta migración crea un cliente placeholder
+  ("Cliente sin especificar") y un pedido de venta placeholder, y reasigna
+  ahí esos despachos. **Revisa esos despachos después de actualizar** y
+  reasígnalos al cliente y pedido de venta correctos desde el formulario de
+  edición.
 
 ## Despliegue en Railway
 
@@ -130,26 +162,27 @@ funcionando en producción.
 ```
 src/
   app/
-    despachos/          # Módulo de Despachos (páginas + server actions)
-    layout.tsx           # Layout raíz con navegación entre módulos
-    page.tsx              # Panel principal
-  components/            # Componentes de UI reutilizables
+    pedidos-venta/       # Módulo de Pedidos de venta (OC del cliente + líneas)
+    despachos/            # Módulo de Despachos (páginas + server actions)
+    clientes/              # Catálogo de clientes (minas)
+    articulos/              # Maestro de artículos
+    transportistas/          # Catálogo de transportistas
+    proveedores/              # Catálogo de proveedores
+    ordenes-compra/            # Compras propias a proveedores
+    layout.tsx                  # Layout raíz con navegación entre módulos
+    page.tsx                     # Panel principal
+  components/                    # Componentes de UI reutilizables
   db/
-    schema.ts             # Definición de tablas (Drizzle)
-    index.ts               # Cliente de base de datos
-    queries.ts             # Funciones de acceso a datos
-    migrate.ts              # Aplica migraciones pendientes
-  instrumentation.ts       # Corre las migraciones al iniciar el servidor
-  lib/
-    estados.ts              # Constantes y etiquetas de estado
-drizzle/                    # Migraciones SQL generadas
+    schema.ts                     # Definición de tablas (Drizzle)
+    index.ts                       # Cliente de base de datos
+    queries/                        # Funciones de acceso a datos, por módulo
+    migrate.ts                       # Aplica migraciones pendientes
+  instrumentation.ts                 # Corre las migraciones al iniciar el servidor
+  lib/                                # Constantes y etiquetas de estado, por módulo
+drizzle/                                # Migraciones SQL generadas
 ```
 
-## Próximos módulos sugeridos
+## Próximo módulo sugerido
 
-- **Transportistas**: catálogo con datos de contacto y vehículos. Cuando se
-  construya, el campo `transportista` de Despachos pasará de texto libre a una
-  relación con este módulo.
-- **Órdenes de compra**: registro con su propio estado y detalle. El campo
-  `ordenCompraRef` de Despachos se enlazará a este módulo.
-- **Guías**: registro y consulta de guías de remisión, enlazado a Despachos.
+- **Guías**: registro y consulta de guías de remisión, agrupando uno o más
+  despachos.

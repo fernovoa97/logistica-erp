@@ -8,7 +8,10 @@ export const metadata: Metadata = {
 };
 
 const NAV_ITEMS = [
+  { href: "/pedidos-venta", label: "Pedidos de venta", disponible: true },
   { href: "/despachos", label: "Despachos", disponible: true },
+  { href: "/clientes", label: "Clientes", disponible: true },
+  { href: "/articulos", label: "Artículos", disponible: true },
   { href: "/transportistas", label: "Transportistas", disponible: true },
   { href: "/ordenes-compra", label: "Órdenes de compra", disponible: true },
   { href: "/proveedores", label: "Proveedores", disponible: true },

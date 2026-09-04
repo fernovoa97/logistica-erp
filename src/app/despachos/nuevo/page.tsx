@@ -1,17 +1,17 @@
 import { DespachoForm } from "@/components/DespachoForm";
 import { crearDespachoAction } from "@/app/despachos/actions";
 import { listarTransportistasActivos } from "@/db/queries/transportistas";
-import { listarOrdenesCompraSelector } from "@/db/queries/ordenes-compra";
+import { listarPedidosVentaSelector } from "@/db/queries/pedidos-venta";
 
-// La lista de transportistas y órdenes de compra se lee en cada visita (no
+// La lista de transportistas y pedidos de venta se lee en cada visita (no
 // se prerenderiza como estática) para que un registro nuevo aparezca de
 // inmediato en los selectores, sin esperar a un nuevo build.
 export const dynamic = "force-dynamic";
 
 export default async function NuevoDespachoPage() {
-  const [transportistas, ordenesCompra] = await Promise.all([
+  const [transportistas, pedidosVenta] = await Promise.all([
     listarTransportistasActivos(),
-    listarOrdenesCompraSelector(),
+    listarPedidosVentaSelector(),
   ]);
 
   return (
@@ -25,7 +25,7 @@ export default async function NuevoDespachoPage() {
       <DespachoForm
         action={crearDespachoAction}
         transportistas={transportistas}
-        ordenesCompra={ordenesCompra}
+        pedidosVenta={pedidosVenta}
         submitLabel="Crear despacho"
       />
     </div>

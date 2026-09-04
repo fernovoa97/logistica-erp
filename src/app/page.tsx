@@ -2,15 +2,33 @@ import Link from "next/link";
 
 const MODULOS = [
   {
+    href: "/pedidos-venta",
+    nombre: "Pedidos de venta",
+    descripcion: "Las OC que envían las minas (clientes), ingresadas al sistema con sus artículos.",
+    disponible: true,
+  },
+  {
     href: "/despachos",
     nombre: "Despachos",
-    descripcion: "Registra y controla el estado de cada despacho, su transportista y guía asociada.",
+    descripcion: "Registra y controla el estado de cada despacho, su transportista, pedido de venta y guía asociada.",
+    disponible: true,
+  },
+  {
+    href: "/clientes",
+    nombre: "Clientes",
+    descripcion: "Catálogo de clientes (minas): contacto, RUC y estado.",
+    disponible: true,
+  },
+  {
+    href: "/articulos",
+    nombre: "Artículos",
+    descripcion: "Maestro de artículos de perforación que se venden a los clientes.",
     disponible: true,
   },
   {
     href: "/ordenes-compra",
     nombre: "Órdenes de compra",
-    descripcion: "Registro y seguimiento de órdenes de compra por proveedor.",
+    descripcion: "Compras propias a proveedores (locales e importaciones), independientes de los pedidos de venta.",
     disponible: true,
   },
   {

@@ -1,0 +1,1 @@
+ALTER TABLE "despachos" ALTER COLUMN "pedido_venta_id" SET NOT NULL;

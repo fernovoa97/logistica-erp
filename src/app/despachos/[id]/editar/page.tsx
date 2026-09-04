@@ -3,7 +3,9 @@ import { DespachoForm } from "@/components/DespachoForm";
 import { actualizarDespachoAction } from "@/app/despachos/actions";
 import { obtenerDespacho } from "@/db/queries/despachos";
 import { listarTransportistasActivos } from "@/db/queries/transportistas";
-import { listarOrdenesCompraSelector } from "@/db/queries/ordenes-compra";
+import { listarPedidosVentaSelector } from "@/db/queries/pedidos-venta";
+
+export const dynamic = "force-dynamic";
 
 export default async function EditarDespachoPage({
   params,
@@ -17,18 +19,23 @@ export default async function EditarDespachoPage({
     notFound();
   }
 
-  const [transportistasActivos, ordenesCompra] = await Promise.all([
+  const [transportistasActivos, pedidosVentaSelector] = await Promise.all([
     listarTransportistasActivos(),
-    listarOrdenesCompraSelector(),
+    listarPedidosVentaSelector(),
   ]);
 
-  // Si el transportista asignado quedó inactivo, lo incluimos igual en la
-  // lista para no perder la selección actual del despacho al editar.
+  // Si el transportista o el pedido de venta asignados ya no aparecen en las
+  // listas activas, los incluimos igual para no perder la selección actual
+  // del despacho al editar.
   const transportistas = transportistasActivos.some(
     (t) => t.id === despacho.transportistaId
   )
     ? transportistasActivos
     : [despacho.transportista, ...transportistasActivos];
+
+  const pedidosVenta = pedidosVentaSelector.some((pv) => pv.id === despacho.pedidoVentaId)
+    ? pedidosVentaSelector
+    : [despacho.pedidoVenta, ...pedidosVentaSelector];
 
   const action = actualizarDespachoAction.bind(null, id);
 
@@ -45,7 +52,7 @@ export default async function EditarDespachoPage({
         action={action}
         despacho={despacho}
         transportistas={transportistas}
-        ordenesCompra={ordenesCompra}
+        pedidosVenta={pedidosVenta}
         submitLabel="Guardar cambios"
       />
     </div>

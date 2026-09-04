@@ -1,0 +1,2 @@
+ALTER TABLE "despachos" ADD COLUMN "pedido_venta_id" uuid;--> statement-breakpoint
+ALTER TABLE "despachos" ADD CONSTRAINT "despachos_pedido_venta_id_pedidos_venta_id_fk" FOREIGN KEY ("pedido_venta_id") REFERENCES "public"."pedidos_venta"("id") ON DELETE no action ON UPDATE no action;

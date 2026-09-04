@@ -50,6 +50,34 @@
       "when": 1788542964000,
       "tag": "0006_drop_orden_compra_ref",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1788544615733,
+      "tag": "0007_pedidos_venta_clientes_articulos",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788544626073,
+      "tag": "0008_despachos_add_pedido_venta_id",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788544631418,
+      "tag": "0009_backfill_pedidos_venta",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788544648439,
+      "tag": "0010_despachos_pedido_venta_not_null",
+      "breakpoints": true
     }
   ]
 }

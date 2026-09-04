@@ -3,21 +3,22 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { ESTADOS, ESTADO_LABEL } from "@/lib/estados";
+import { MONEDA_SIMBOLO } from "@/lib/pedidos-venta";
 import { aFechaInput } from "@/lib/fechas";
-import type { DespachoConRelaciones, Transportista, OrdenCompraConProveedor } from "@/db/schema";
+import type { DespachoConRelaciones, Transportista, PedidoVentaConCliente } from "@/db/schema";
 import type { EstadoFormulario } from "@/app/despachos/actions";
 
 export function DespachoForm({
   action,
   despacho,
   transportistas,
-  ordenesCompra,
+  pedidosVenta,
   submitLabel,
 }: {
   action: (prevState: EstadoFormulario, formData: FormData) => Promise<EstadoFormulario>;
   despacho?: DespachoConRelaciones;
   transportistas: Transportista[];
-  ordenesCompra: OrdenCompraConProveedor[];
+  pedidosVenta: PedidoVentaConCliente[];
   submitLabel: string;
 }) {
   const [state, formAction, isPending] = useActionState<EstadoFormulario, FormData>(
@@ -110,22 +111,35 @@ export function DespachoForm({
         </div>
 
         <div className="flex flex-col gap-1">
-          <label htmlFor="ordenCompraId" className="text-sm font-medium text-zinc-700">
-            Orden de compra
+          <label htmlFor="pedidoVentaId" className="text-sm font-medium text-zinc-700">
+            Pedido de venta *
           </label>
           <select
-            id="ordenCompraId"
-            name="ordenCompraId"
-            defaultValue={despacho?.ordenCompraId ?? ""}
+            id="pedidoVentaId"
+            name="pedidoVentaId"
+            required
+            defaultValue={despacho?.pedidoVentaId ?? ""}
             className="rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none"
           >
-            <option value="">Sin orden de compra</option>
-            {ordenesCompra.map((oc) => (
-              <option key={oc.id} value={oc.id}>
-                {oc.numeroOc || "(sin número)"} — {oc.proveedor.nombre}
+            <option value="" disabled>
+              Selecciona un pedido de venta...
+            </option>
+            {pedidosVenta.map((pv) => (
+              <option key={pv.id} value={pv.id}>
+                {pv.numeroOcCliente || "(sin N° OC)"} — {pv.cliente.nombre} (
+                {MONEDA_SIMBOLO[pv.moneda]})
               </option>
             ))}
           </select>
+          {pedidosVenta.length === 0 && (
+            <p className="text-xs text-zinc-500">
+              No hay pedidos de venta registrados todavía.{" "}
+              <Link href="/pedidos-venta/nuevo" className="underline">
+                Crea uno primero
+              </Link>
+              .
+            </p>
+          )}
         </div>
 
         <div className="flex flex-col gap-1">

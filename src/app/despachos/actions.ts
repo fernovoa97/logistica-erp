@@ -18,10 +18,12 @@ export type EstadoFormulario = {
 function parseFormulario(formData: FormData): NuevoDespacho | { error: string } {
   const transportistaId = String(formData.get("transportistaId") ?? "").trim();
   const destino = String(formData.get("destino") ?? "").trim();
+  const pedidoVentaId = String(formData.get("pedidoVentaId") ?? "").trim();
   const fechaDespachoRaw = String(formData.get("fechaDespacho") ?? "").trim();
   const estado = String(formData.get("estado") ?? "pendiente").trim();
 
   if (!transportistaId) return { error: "Debes seleccionar un transportista." };
+  if (!pedidoVentaId) return { error: "Debes seleccionar un pedido de venta." };
   if (!destino) return { error: "El destino es obligatorio." };
   if (!fechaDespachoRaw) return { error: "La fecha de despacho es obligatoria." };
 
@@ -46,7 +48,7 @@ function parseFormulario(formData: FormData): NuevoDespacho | { error: string } 
     transportistaId,
     origen: String(formData.get("origen") ?? "").trim() || null,
     destino,
-    ordenCompraId: String(formData.get("ordenCompraId") ?? "").trim() || null,
+    pedidoVentaId,
     estado: estado as EstadoDespacho,
     fechaDespacho,
     fechaEntregaEstimada,
@@ -66,7 +68,10 @@ export async function crearDespachoAction(
   try {
     await crearDespacho(resultado);
   } catch {
-    return { error: "El transportista o la orden de compra seleccionados ya no existen. Actualiza la página e inténtalo de nuevo." };
+    return {
+      error:
+        "El transportista o el pedido de venta seleccionados ya no existen. Actualiza la página e inténtalo de nuevo.",
+    };
   }
 
   revalidatePath("/despachos");
@@ -86,7 +91,10 @@ export async function actualizarDespachoAction(
   try {
     await actualizarDespacho(id, resultado);
   } catch {
-    return { error: "El transportista o la orden de compra seleccionados ya no existen. Actualiza la página e inténtalo de nuevo." };
+    return {
+      error:
+        "El transportista o el pedido de venta seleccionados ya no existen. Actualiza la página e inténtalo de nuevo.",
+    };
   }
 
   revalidatePath("/despachos");

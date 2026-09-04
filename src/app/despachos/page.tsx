@@ -55,7 +55,7 @@ export default async function DespachosPage({
             name="q"
             type="text"
             defaultValue={q}
-            placeholder="Guía, transportista, destino, OC..."
+            placeholder="Guía, transportista, destino, cliente, N° OC..."
             className="w-64 rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none"
           />
         </div>
@@ -100,7 +100,7 @@ export default async function DespachosPage({
               <th className="px-4 py-3 text-left font-medium text-zinc-600">Guía</th>
               <th className="px-4 py-3 text-left font-medium text-zinc-600">Transportista</th>
               <th className="px-4 py-3 text-left font-medium text-zinc-600">Origen → Destino</th>
-              <th className="px-4 py-3 text-left font-medium text-zinc-600">OC</th>
+              <th className="px-4 py-3 text-left font-medium text-zinc-600">Pedido de venta</th>
               <th className="px-4 py-3 text-left font-medium text-zinc-600">Estado</th>
               <th className="px-4 py-3 text-left font-medium text-zinc-600">F. despacho</th>
               <th className="px-4 py-3 text-left font-medium text-zinc-600">F. est. entrega</th>
@@ -133,16 +133,17 @@ export default async function DespachosPage({
                   {despacho.destino}
                 </td>
                 <td className="px-4 py-3 text-zinc-600">
-                  {despacho.ordenCompra ? (
-                    <Link
-                      href={`/ordenes-compra/${despacho.ordenCompra.id}/editar`}
-                      className="hover:underline"
-                    >
-                      {despacho.ordenCompra.numeroOc || "(sin número)"}
-                    </Link>
-                  ) : (
-                    "—"
-                  )}
+                  <Link
+                    href={`/pedidos-venta/${despacho.pedidoVenta.id}/editar`}
+                    className="hover:underline"
+                  >
+                    <span className="block">
+                      {despacho.pedidoVenta.numeroOcCliente || "(sin N° OC)"}
+                    </span>
+                    <span className="block text-xs text-zinc-500">
+                      {despacho.pedidoVenta.cliente.nombre}
+                    </span>
+                  </Link>
                 </td>
                 <td className="px-4 py-3">
                   <EstadoBadge estado={despacho.estado} />

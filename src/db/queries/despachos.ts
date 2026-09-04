@@ -2,7 +2,8 @@ import { db } from "@/db";
 import {
   despachos,
   transportistas,
-  ordenesCompra,
+  pedidosVenta,
+  clientes,
   type NuevoDespacho,
   type DespachoConRelaciones,
 } from "@/db/schema";
@@ -26,19 +27,25 @@ export async function listarDespachos(
   if (filtros.q && filtros.q.trim() !== "") {
     const termino = `%${filtros.q.trim()}%`;
 
-    // El nombre del transportista y el número de OC viven en otras tablas;
-    // buscamos primero los IDs que calzan con el término de búsqueda.
+    // El nombre del transportista, el N° de OC del cliente y el nombre del
+    // cliente viven en otras tablas; buscamos primero los IDs que calzan.
     const transportistasCoincidentes = await db
       .select({ id: transportistas.id })
       .from(transportistas)
       .where(ilike(transportistas.nombre, termino));
     const idsTransportistas = transportistasCoincidentes.map((t) => t.id);
 
-    const ocCoincidentes = await db
-      .select({ id: ordenesCompra.id })
-      .from(ordenesCompra)
-      .where(ilike(ordenesCompra.numeroOc, termino));
-    const idsOc = ocCoincidentes.map((o) => o.id);
+    const pedidosCoincidentes = await db
+      .select({ id: pedidosVenta.id })
+      .from(pedidosVenta)
+      .innerJoin(clientes, eq(pedidosVenta.clienteId, clientes.id))
+      .where(
+        or(
+          ilike(pedidosVenta.numeroOcCliente, termino),
+          ilike(clientes.nombre, termino)
+        )
+      );
+    const idsPedidos = pedidosCoincidentes.map((p) => p.id);
 
     condiciones.push(
       or(
@@ -48,14 +55,17 @@ export async function listarDespachos(
         idsTransportistas.length
           ? inArray(despachos.transportistaId, idsTransportistas)
           : undefined,
-        idsOc.length ? inArray(despachos.ordenCompraId, idsOc) : undefined
+        idsPedidos.length ? inArray(despachos.pedidoVentaId, idsPedidos) : undefined
       )
     );
   }
 
   return db.query.despachos.findMany({
     where: condiciones.length ? and(...condiciones) : undefined,
-    with: { transportista: true, ordenCompra: { with: { proveedor: true } } },
+    with: {
+      transportista: true,
+      pedidoVenta: { with: { cliente: true } },
+    },
     orderBy: [desc(despachos.fechaDespacho), desc(despachos.createdAt)],
   });
 }
@@ -65,7 +75,10 @@ export async function obtenerDespacho(
 ): Promise<DespachoConRelaciones | undefined> {
   return db.query.despachos.findFirst({
     where: eq(despachos.id, id),
-    with: { transportista: true, ordenCompra: { with: { proveedor: true } } },
+    with: {
+      transportista: true,
+      pedidoVenta: { with: { cliente: true } },
+    },
   });
 }
 

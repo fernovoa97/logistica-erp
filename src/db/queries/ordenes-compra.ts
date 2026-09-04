@@ -2,11 +2,10 @@ import { db } from "@/db";
 import {
   ordenesCompra,
   proveedores,
-  despachos,
   type NuevaOrdenCompra,
   type OrdenCompraConProveedor,
 } from "@/db/schema";
-import { and, count, desc, eq, ilike, or } from "drizzle-orm";
+import { and, desc, eq, ilike, or } from "drizzle-orm";
 import type { EstadoOC } from "@/lib/ordenes-compra";
 
 export type FiltrosOrdenesCompra = {
@@ -78,14 +77,6 @@ export async function actualizarOrdenCompra(
     .where(eq(ordenesCompra.id, id))
     .returning();
   return orden;
-}
-
-export async function contarDespachosDeOrdenCompra(id: string): Promise<number> {
-  const [fila] = await db
-    .select({ total: count() })
-    .from(despachos)
-    .where(eq(despachos.ordenCompraId, id));
-  return fila?.total ?? 0;
 }
 
 export async function eliminarOrdenCompra(id: string) {

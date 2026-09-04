@@ -6,7 +6,6 @@ import {
   crearOrdenCompra,
   actualizarOrdenCompra,
   eliminarOrdenCompra,
-  contarDespachosDeOrdenCompra,
 } from "@/db/queries/ordenes-compra";
 import { ESTADOS_OC, type EstadoOC } from "@/lib/ordenes-compra";
 import type { NuevaOrdenCompra } from "@/db/schema";
@@ -107,17 +106,6 @@ export async function actualizarOrdenCompraAction(
 export async function eliminarOrdenCompraAction(
   id: string
 ): Promise<{ error?: string }> {
-  const despachosAsociados = await contarDespachosDeOrdenCompra(id);
-  if (despachosAsociados > 0) {
-    return {
-      error: `No se puede eliminar: tiene ${despachosAsociados} despacho${
-        despachosAsociados === 1 ? "" : "s"
-      } asociado${
-        despachosAsociados === 1 ? "" : "s"
-      }. Márcala como "Cancelada" en vez de eliminarla, o reasigna esos despachos primero.`,
-    };
-  }
-
   await eliminarOrdenCompra(id);
   revalidatePath("/ordenes-compra");
   return {};
